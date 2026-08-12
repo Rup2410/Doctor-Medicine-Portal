@@ -1,16 +1,2123 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Doctor Medicine Information Portal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen">
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Medicine Information Portal v2</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            medred: {
+              50: '#fdecec', 100: '#f9d5d5', 500: '#e53935', 600: '#c62828', 700: '#a61b1b', 900: '#691212'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; transition: background-color 0.2s ease, color 0.2s ease; }
+    .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); border: 1px solid #e5e7eb; }
+    .dark .glass-panel { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-card { background: #ffffff; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s ease-in-out; }
+    .glass-card:hover { border-color: rgba(198, 40, 40, 0.4); box-shadow: 0 10px 25px -5px rgba(198, 40, 40, 0.1); }
+    .dark .glass-card { background: rgba(31, 41, 55, 0.6); border: 1px solid rgba(255, 255, 255, 0.07); box-shadow: none; }
+    .reduce-motion * { animation: none !important; transition: none !important; }
+
+    /* Font Scale Engine */
+    html.font-scale-small, html.font-scale-small body { font-size: 13px !important; }
+    html.font-scale-small p, html.font-scale-small span, html.font-scale-small button, html.font-scale-small td, html.font-scale-small input, html.font-scale-small h1, html.font-scale-small h2, html.font-scale-small h3 { font-size: 85% !important; }
+    
+    html.font-scale-large, html.font-scale-large body { font-size: 18.5px !important; }
+    html.font-scale-large p, html.font-scale-large span, html.font-scale-large button, html.font-scale-large td, html.font-scale-large input, html.font-scale-large h1, html.font-scale-large h2, html.font-scale-large h3 { font-size: 118% !important; }
+
+    /* High Contrast Clinical Readability Mode */
+    html.high-contrast { filter: contrast(140%); }
+    html.high-contrast body { font-weight: 600 !important; }
+    html.high-contrast p, html.high-contrast span, html.high-contrast h1, html.high-contrast h2, html.high-contrast h3, html.high-contrast h4, html.high-contrast label, html.high-contrast th, html.high-contrast td {
+      color: #000000 !important;
+      font-weight: 700 !important;
+    }
+    html.dark.high-contrast p, html.dark.high-contrast span, html.dark.high-contrast h1, html.dark.high-contrast h2, html.dark.high-contrast h3, html.dark.high-contrast h4, html.dark.high-contrast label, html.dark.high-contrast th, html.dark.high-contrast td {
+      color: #FFFFFF !important;
+      font-weight: 700 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const INITIAL_COMPANIES = [
+      { id: 1, companyName: "Sun Pharma", medicineCount: 2, mrs: [{ id: 1, mrName: "Rahul Sharma", contactNumber: "+91 98765 43210" }] },
+      { id: 2, companyName: "Cipla", medicineCount: 2, mrs: [{ id: 3, mrName: "Suman Das", contactNumber: "+91 98123 45678" }] },
+      { id: 3, companyName: "Mankind Pharma", medicineCount: 2, mrs: [{ id: 4, mrName: "Priya Verma", contactNumber: "+91 97890 12345" }] },
+      { id: 4, companyName: "Torrent Pharmaceuticals", medicineCount: 2, mrs: [{ id: 5, mrName: "Vikram Mehta", contactNumber: "+91 99001 12233" }] },
+      { id: 5, companyName: "Lupin Limited", medicineCount: 1, mrs: [{ id: 6, mrName: "Ananya Sen", contactNumber: "+91 98334 55667" }] },
+      { id: 6, companyName: "Dr. Reddy's Laboratories", medicineCount: 1, mrs: [{ id: 7, mrName: "Rohan Kapoor", contactNumber: "+91 91234 56789" }] }
+    ];
+
+    const INITIAL_MEDICINES = [
+      { id: 1, medicineName: "Volini Gel 50g", companyId: 1, companyName: "Sun Pharma", composition: "Diclofenac Diethylamine 1.16% w/w, Linseed Oil 3.0% w/w, Methyl Salicylate 10.0% w/w, Menthol 5.0% w/w", description: "Topical analgesic gel for joint pain, neck pain, and muscle sprains.", mrName: "Rahul Sharma", mrContact: "+91 98765 43210", createdAt: "2026-08-12T10:00:00" },
+      { id: 2, medicineName: "Pantocid D SR", companyId: 1, companyName: "Sun Pharma", composition: "Pantoprazole 40mg + Domperidone 30mg", description: "Sustained release capsule used to treat GERD and acid peptic disorders.", mrName: "Rahul Sharma", mrContact: "+91 98765 43210", createdAt: "2026-08-11T14:30:00" },
+      { id: 3, medicineName: "Ciplox 500", companyId: 2, companyName: "Cipla", composition: "Ciprofloxacin Hydrochloride 500mg", description: "Broad-spectrum fluoroquinolone antibiotic prescribed for bacterial infections.", mrName: "Suman Das", mrContact: "+91 98123 45678", createdAt: "2026-08-10T09:15:00" },
+      { id: 4, medicineName: "Foracort 200 Inhaler", companyId: 2, companyName: "Cipla", composition: "Budesonide 200mcg + Formoterol Fumarate 6mcg", description: "Inhalation aerosol for maintenance treatment of asthma and COPD.", mrName: "Suman Das", mrContact: "+91 98123 45678", createdAt: "2026-08-09T16:20:00" },
+      { id: 5, medicineName: "Moxikind-CV 625", companyId: 3, companyName: "Mankind Pharma", composition: "Amoxicillin Trihydrate 500mg + Potassium Clavulanate 125mg", description: "Beta-lactamase inhibitor combination antibiotic for resistant bacterial infections.", mrName: "Priya Verma", mrContact: "+91 97890 12345", createdAt: "2026-08-08T11:45:00" },
+      { id: 6, medicineName: "Shelcal 500", companyId: 4, companyName: "Torrent Pharmaceuticals", composition: "Elemental Calcium 500mg + Vitamin D3 250 IU", description: "Bone health dietary supplement prescribed for osteoporosis and calcium deficiency.", mrName: "Vikram Mehta", mrContact: "+91 99001 12233", createdAt: "2026-08-07T13:10:00" }
+    ];
+
+    const INITIAL_DOCUMENTS = [
+      { id: 1, fileName: "SunPharma_Brochure_Aug2026.pdf", fileType: "application/pdf", fileSize: 1048576, processingStatus: "CONFIRMED", uploadDate: "2026-08-12T10:00:00" },
+      { id: 2, fileName: "Cipla_Respiratory_Guide.pdf", fileType: "application/pdf", fileSize: 2097152, processingStatus: "CONFIRMED", uploadDate: "2026-08-10T09:15:00" },
+      { id: 3, fileName: "Mankind_AntiInfective_Detailer.png", fileType: "image/png", fileSize: 524288, processingStatus: "CONFIRMED", uploadDate: "2026-08-08T11:45:00" }
+    ];
+
+    function App() {
+      // Doctor Profile & Token State
+      const [doctor, setDoctor] = useState(() => {
+        const stored = localStorage.getItem('portal_doctor_v2');
+        return stored ? JSON.parse(stored) : { 
+          id: 1, 
+          name: "Dr. Rupak Biswas", 
+          email: "doctor@example.com", 
+          phone: "+91 98765 43210", 
+          profilePictureUrl: null,
+          themePreference: "LIGHT",
+          reduceMotion: false
+        };
+      });
+      const [token, setToken] = useState(() => localStorage.getItem('portal_token') || 'demo_jwt_token_12345');
+
+      // Zoom Modal State
+      const [zoomModalOpen, setZoomModalOpen] = useState(false);
+      const [viewingMedicineDoc, setViewingMedicineDoc] = useState(null);
+      const [viewingArchiveDoc, setViewingArchiveDoc] = useState(null);
+
+      // Permanent Saved Appearance States
+      const [savedThemeMode, setSavedThemeMode] = useState(() => doctor.themePreference || 'LIGHT');
+      const [savedFontSizeScale, setSavedFontSizeScale] = useState(() => doctor.fontSizeScale || 'NORMAL'); // 'SMALL', 'NORMAL', 'LARGE'
+      const [savedHighContrast, setSavedHighContrast] = useState(() => !!doctor.highContrast);
+      const [reduceMotion, setReduceMotion] = useState(() => !!doctor.reduceMotion);
+
+      // Live Instant Preview Appearance States (User sees live difference immediately on screen)
+      const [previewThemeMode, setPreviewThemeMode] = useState(() => doctor.themePreference || 'LIGHT');
+      const [previewFontSizeScale, setPreviewFontSizeScale] = useState(() => doctor.fontSizeScale || 'NORMAL');
+      const [previewHighContrast, setPreviewHighContrast] = useState(() => !!doctor.highContrast);
+      const [appearanceSavedMsg, setAppearanceSavedMsg] = useState('');
+
+      // Data Persistence State
+      const [companies, setCompanies] = useState(() => JSON.parse(localStorage.getItem('portal_companies')) || INITIAL_COMPANIES);
+      const [medicines, setMedicines] = useState(() => JSON.parse(localStorage.getItem('portal_medicines')) || INITIAL_MEDICINES);
+      const [documents, setDocuments] = useState(() => JSON.parse(localStorage.getItem('portal_documents')) || INITIAL_DOCUMENTS);
+      const [favoriteMrIds, setFavoriteMrIds] = useState(() => JSON.parse(localStorage.getItem('portal_fav_mr_ids')) || [1, 3]);
+
+      // Navigation & Dropdown State
+      const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'medicines', 'upload', 'companies', 'documents', 'favorites', 'profile', 'settings'
+      const [settingsTab, setSettingsTab] = useState('appearance'); // 'account', 'appearance', 'notifications', 'privacy', 'preferences', 'data', 'about'
+      const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+      const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+      // Interactive Notifications & Preferences State
+      const [notificationsList, setNotificationsList] = useState([
+        { id: 1, title: 'Document Processed', message: 'SunPharma_Brochure_Aug2026.pdf verified & saved.', read: false, time: '10m ago' },
+        { id: 2, title: 'OCR Extraction Ready', message: 'Mankind_AntiInfective_Detailer.png extracted 2 medicines.', read: false, time: '1h ago' }
+      ]);
+
+      const [notifSettings, setNotifSettings] = useState({
+        documentAlerts: true,
+        reviewReminders: true,
+        securityAlerts: true
+      });
+
+      // Filter & Search States
+      const [globalSearch, setGlobalSearch] = useState('');
+      const [companyFilter, setCompanyFilter] = useState('');
+      const [fromDate, setFromDate] = useState('');
+      const [toDate, setToDate] = useState('');
+      const [selectedMedicineId, setSelectedMedicineId] = useState(null);
+
+      // Upload State
+      const [uploadStep, setUploadStep] = useState('UPLOAD');
+      const [selectedFile, setSelectedFile] = useState(null);
+      const [uploadStatus, setUploadStatus] = useState('');
+      const [extractedData, setExtractedData] = useState({ companyName: '', mrName: '', mrContact: '', medicines: [] });
+
+      // Auto-discard unsaved live preview effects when navigating away from Appearance tab
+      useEffect(() => {
+        if (currentView !== 'settings' || settingsTab !== 'appearance') {
+          setPreviewThemeMode(savedThemeMode);
+          setPreviewFontSizeScale(savedFontSizeScale);
+          setPreviewHighContrast(savedHighContrast);
+        }
+      }, [currentView, settingsTab, savedThemeMode, savedFontSizeScale, savedHighContrast]);
+
+      // Theme application & font scale listener (Listens to preview state so user sees instant live difference)
+      useEffect(() => {
+        const root = document.documentElement;
+        let isDark = false;
+        if (previewThemeMode === 'DARK') isDark = true;
+        else if (previewThemeMode === 'LIGHT') isDark = false;
+        else if (previewThemeMode === 'SYSTEM') isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (isDark) root.classList.add('dark');
+        else root.classList.remove('dark');
+
+        if (reduceMotion) root.classList.add('reduce-motion');
+        else root.classList.remove('reduce-motion');
+
+        // Font scale classes
+        root.classList.remove('font-scale-small', 'font-scale-large');
+        if (previewFontSizeScale === 'SMALL') {
+          root.classList.add('font-scale-small');
+        } else if (previewFontSizeScale === 'LARGE') {
+          root.classList.add('font-scale-large');
+        }
+
+        // High contrast class
+        if (previewHighContrast) {
+          root.classList.add('high-contrast');
+        } else {
+          root.classList.remove('high-contrast');
+        }
+      }, [previewThemeMode, reduceMotion, previewFontSizeScale, previewHighContrast]);
+
+      useEffect(() => { localStorage.setItem('portal_doctor_v2', JSON.stringify(doctor)); }, [doctor]);
+      useEffect(() => { localStorage.setItem('portal_companies', JSON.stringify(companies)); }, [companies]);
+      useEffect(() => { localStorage.setItem('portal_medicines', JSON.stringify(medicines)); }, [medicines]);
+      useEffect(() => { localStorage.setItem('portal_documents', JSON.stringify(documents)); }, [documents]);
+      useEffect(() => { localStorage.setItem('portal_fav_mr_ids', JSON.stringify(favoriteMrIds)); }, [favoriteMrIds]);
+      useEffect(() => { if (window.lucide) window.lucide.createIcons(); });
+
+      const getInitials = (name) => {
+        if (!name) return 'DR';
+        const parts = name.replace(/^Dr\.\s*/i, '').trim().split(' ');
+        if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        return parts[0].substring(0, 2).toUpperCase();
+      };
+
+      const handleToggleFavorite = (mrId) => {
+        if (favoriteMrIds.includes(mrId)) {
+          setFavoriteMrIds(favoriteMrIds.filter(id => id !== mrId));
+        } else {
+          setFavoriteMrIds([...favoriteMrIds, mrId]);
+        }
+      };
+
+      const processFileExtraction = (file) => {
+        setSelectedFile(file);
+        setUploadStep('PROCESSING');
+        setUploadStatus('Uploading file to protected server storage...');
+
+        setTimeout(() => setUploadStatus('Executing OCR text extraction pipeline...'), 800);
+        setTimeout(() => setUploadStatus('AI model analyzing structured pharmaceutical fields...'), 1800);
+
+        setTimeout(() => {
+          const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ").replace(/-/g, " ");
+          let comp = "Sun Pharma"; let mr = "Rahul Sharma"; let phone = "+91 98765 43210";
+          if (cleanName.toLowerCase().includes("cipla")) { comp = "Cipla"; mr = "Suman Das"; phone = "+91 98123 45678"; }
+          else if (cleanName.toLowerCase().includes("mankind")) { comp = "Mankind Pharma"; mr = "Priya Verma"; phone = "+91 97890 12345"; }
+
+          setExtractedData({
+            companyName: comp,
+            mrName: mr,
+            mrContact: phone,
+            medicines: [{ id: 1, medicineName: cleanName, composition: "Extracted chemical details", description: "Indications and clinical usage details extracted from MR brochure.", confidence: 0.92 }]
+          });
+          setUploadStep('VERIFY');
+        }, 2800);
+      };
+
+      const handleConfirmSave = () => {
+        const docId = Date.now();
+        setDocuments([{ id: docId, fileName: selectedFile ? selectedFile.name : "Document.pdf", fileType: selectedFile ? selectedFile.type : "application/pdf", fileSize: selectedFile ? selectedFile.size : 102400, processingStatus: "CONFIRMED", uploadDate: new Date().toISOString() }, ...documents]);
+        const newMeds = extractedData.medicines.map((m, idx) => ({ id: Date.now() + idx, medicineName: m.medicineName, companyId: 1, companyName: extractedData.companyName, composition: m.composition, description: m.description, mrName: extractedData.mrName, mrContact: extractedData.mrContact, createdAt: new Date().toISOString() }));
+        setMedicines([...newMeds, ...medicines]);
+        setUploadStep('SUCCESS');
+      };
+
+      const [authMode, setAuthMode] = useState('login'); // 'login', 'signup', or 'forgot'
+      const [regName, setRegName] = useState('Dr. Rupak Biswas');
+      const [regEmail, setRegEmail] = useState('doctor@example.com');
+      const [regPhone, setRegPhone] = useState('+91 98765 43210');
+      const [regPassword, setRegPassword] = useState('password123');
+
+      // Forgot Password OTP State
+      const [forgotStep, setForgotStep] = useState(1); // 1: Send OTP, 2: Verify OTP, 3: Reset Password
+      const [forgotPhoneInput, setForgotPhoneInput] = useState('+91 98765 43210');
+      const [forgotOtpInput, setForgotOtpInput] = useState('');
+      const [resetNewPassword, setResetNewPassword] = useState('');
+      const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+      const [otpSentNotice, setOtpSentNotice] = useState(false);
+      const [otpSuccessMsg, setOtpSuccessMsg] = useState('');
+
+      // Account Selector Lightbox Modal States
+      const [googleModalOpen, setGoogleModalOpen] = useState(false);
+      const [msModalOpen, setMsModalOpen] = useState(false);
+      const [showCustomGmail, setShowCustomGmail] = useState(false);
+      const [customGmail, setCustomGmail] = useState('');
+      const [customGmailName, setCustomGmailName] = useState('');
+
+      if (!token) {
+        return (
+          <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+            <div className="glass-panel p-8 md:p-10 rounded-3xl max-w-md w-full border border-slate-200 dark:border-slate-800 text-center shadow-2xl space-y-6">
+              
+              {/* Header */}
+              <div>
+                <div className="w-14 h-14 rounded-2xl bg-medred-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-medred-600/20">
+                  <i data-lucide="cross" className="w-7 h-7"></i>
+                </div>
+                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+                  {authMode === 'signup' ? 'Doctor Registration' : authMode === 'forgot' ? 'Reset Password' : 'Doctor Portal Login'}
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {authMode === 'signup' 
+                    ? 'First-time doctor user registration' 
+                    : authMode === 'forgot' 
+                    ? 'Verify registered mobile OTP to recover account' 
+                    : 'Medical Representative Information System'}
+                </p>
+              </div>
+
+              {/* FORGOT PASSWORD OTP VIEW */}
+              {authMode === 'forgot' ? (
+                <div className="space-y-4 text-left">
+                  {otpSuccessMsg && (
+                    <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                      {otpSuccessMsg}
+                    </div>
+                  )}
+
+                  {forgotStep === 1 && (
+                    <form 
+                      onSubmit={e => {
+                        e.preventDefault();
+                        setOtpSentNotice(true);
+                        setForgotStep(2);
+                      }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Registered Mobile Number <span className="text-medred-600 font-extrabold">*</span>
+                        </label>
+                        <input 
+                          type="tel" 
+                          value={forgotPhoneInput}
+                          onChange={e => setForgotPhoneInput(e.target.value)}
+                          placeholder="+91 98765 43210"
+                          className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100"
+                          required 
+                        />
+                        <p className="text-[11px] text-slate-400 mt-1">An SMS verification code will be sent to this phone number.</p>
+                      </div>
+
+                      <button type="submit" className="w-full bg-medred-600 hover:bg-medred-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-medred-600/20 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="send" className="w-4 h-4"></i> Send OTP to Mobile Number
+                      </button>
+
+                      <div className="text-center pt-2">
+                        <button type="button" onClick={() => setAuthMode('login')} className="text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                          ← Back to Login
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {forgotStep === 2 && (
+                    <form 
+                      onSubmit={e => {
+                        e.preventDefault();
+                        if (forgotOtpInput.trim() === '482910' || forgotOtpInput.length === 6) {
+                          setForgotStep(3);
+                        } else {
+                          alert('Invalid OTP code. Please enter 482910.');
+                        }
+                      }}
+                      className="space-y-4"
+                    >
+                      <div className="p-3 bg-medred-50 dark:bg-medred-950/30 border border-medred-100 dark:border-medred-900/40 rounded-2xl text-xs space-y-1">
+                        <p className="font-bold text-slate-900 dark:text-slate-100">OTP Sent via SMS!</p>
+                        <p className="text-slate-600 dark:text-slate-400 text-[11px]">Sent 6-digit OTP code to {forgotPhoneInput}. (Default Code: <strong className="text-medred-600 font-mono text-xs">482910</strong>)</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Enter 6-Digit OTP Code <span className="text-medred-600 font-extrabold">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          maxLength={6}
+                          value={forgotOtpInput}
+                          onChange={e => setForgotOtpInput(e.target.value)}
+                          placeholder="e.g. 482910"
+                          className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-lg font-mono font-bold text-center tracking-[0.4em] text-slate-900 dark:text-slate-100"
+                          required 
+                        />
+                      </div>
+
+                      <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle-2" className="w-4 h-4"></i> Verify OTP Code
+                      </button>
+
+                      <div className="flex justify-between items-center text-xs pt-1">
+                        <button type="button" onClick={() => setForgotStep(1)} className="text-slate-400 hover:text-slate-600">Change Phone Number</button>
+                        <button type="button" onClick={() => alert('Resent OTP code to ' + forgotPhoneInput)} className="text-medred-600 font-bold hover:underline">Resend OTP</button>
+                      </div>
+                    </form>
+                  )}
+
+                  {forgotStep === 3 && (
+                    <form 
+                      onSubmit={e => {
+                        e.preventDefault();
+                        if (resetNewPassword !== resetConfirmPassword) {
+                          alert('New password and confirm password do not match.');
+                          return;
+                        }
+                        setDoctor({ ...doctor, password: resetNewPassword });
+                        setOtpSuccessMsg('Password reset successfully! Logging into portal...');
+                        setTimeout(() => {
+                          setToken('jwt_reset_password_token_123');
+                        }, 800);
+                      }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          New Password <span className="text-medred-600 font-extrabold">*</span>
+                        </label>
+                        <input 
+                          type="password" 
+                          value={resetNewPassword}
+                          onChange={e => setResetNewPassword(e.target.value)}
+                          placeholder="Enter new strong password"
+                          className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100"
+                          required 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Confirm New Password <span className="text-medred-600 font-extrabold">*</span>
+                        </label>
+                        <input 
+                          type="password" 
+                          value={resetConfirmPassword}
+                          onChange={e => setResetConfirmPassword(e.target.value)}
+                          placeholder="Re-enter new password"
+                          className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100"
+                          required 
+                        />
+                      </div>
+
+                      <button type="submit" className="w-full bg-medred-600 hover:bg-medred-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-medred-600/20 transition-all">
+                        Reset Password & Login
+                      </button>
+                    </form>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {/* OAuth Single Sign-On Buttons */}
+                  <div className="space-y-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setGoogleModalOpen(true)}
+                      className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm group hover:border-medred-600"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      {authMode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMsModalOpen(true)}
+                      className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm group hover:border-blue-500"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 23 23">
+                        <path fill="#f35325" d="M1 1h10v10H1z"/>
+                        <path fill="#81bc06" d="M12 1h10v10H1z"/>
+                        <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                        <path fill="#ffba08" d="M12 12h10v10H1z"/>
+                      </svg>
+                      {authMode === 'signup' ? 'Sign up with Microsoft' : 'Sign in with Microsoft'}
+                    </button>
+                  </div>
+
+                  <div className="relative flex items-center justify-center">
+                    <div className="border-t border-slate-200 dark:border-slate-800 w-full"></div>
+                    <span className="bg-white dark:bg-slate-900 px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider absolute">OR VIA EMAIL</span>
+                  </div>
+
+                  {/* Mandate Note for Sign Up */}
+                  {authMode === 'signup' && (
+                    <div className="p-2.5 rounded-xl bg-medred-50/60 dark:bg-medred-950/30 border border-medred-100 dark:border-medred-900/40 text-left">
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold leading-relaxed">
+                        <span className="text-medred-600 font-extrabold text-xs mr-0.5">*</span> Fields marked with a red asterisk (<span className="text-medred-600 font-bold">*</span>) are mandatory and must not be left empty.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Form */}
+                  <form 
+                    onSubmit={e => {
+                      e.preventDefault();
+                      if (authMode === 'signup') {
+                        setDoctor({ ...doctor, name: regName || 'Dr. Rupak Biswas', email: regEmail || 'doctor@example.com', phone: regPhone || '+91 98765 43210' });
+                      }
+                      setToken('demo_jwt_token_12345');
+                    }} 
+                    className="space-y-4 text-left"
+                  >
+                    {authMode === 'signup' && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Doctor Full Name <span className="text-medred-600 font-extrabold">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          value={regName} 
+                          onChange={e => setRegName(e.target.value)} 
+                          placeholder="e.g. Dr. Rupak Biswas" 
+                          className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400" 
+                          required 
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                        Doctor Email Address
+                      </label>
+                      <input 
+                        type="email" 
+                        value={regEmail} 
+                        onChange={e => setRegEmail(e.target.value)} 
+                        placeholder="doctor@example.com" 
+                        className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400" 
+                        required 
+                      />
+                    </div>
+
+                    {authMode === 'signup' && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+                          Contact Phone Number <span className="text-medred-600 font-extrabold">*</span>
+                        </label>
+                        <input 
+                          type="tel" 
+                          value={regPhone} 
+                          onChange={e => setRegPhone(e.target.value)} 
+                          placeholder="+91 98765 43210" 
+                          className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400" 
+                          required 
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Password <span className="text-medred-600 font-extrabold">*</span>
+                        </label>
+                        {authMode === 'login' && (
+                          <button 
+                            type="button" 
+                            onClick={() => { setAuthMode('forgot'); setForgotStep(1); }} 
+                            className="text-xs font-bold text-medred-600 hover:underline"
+                          >
+                            Forgot Password?
+                          </button>
+                        )}
+                      </div>
+                      <input 
+                        type="password" 
+                        value={regPassword} 
+                        onChange={e => setRegPassword(e.target.value)} 
+                        className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100" 
+                        required 
+                      />
+                    </div>
+
+                    <button type="submit" className="w-full bg-medred-600 hover:bg-medred-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-medred-600/20 transition-all">
+                      {authMode === 'signup' ? 'Create Doctor Account' : 'Login to Portal'}
+                    </button>
+                  </form>
+                </>
+              )}
+
+              {/* Auth Mode Toggle */}
+              <div className="pt-2 text-xs text-slate-500">
+                {authMode === 'signup' ? (
+                  <p>Already registered? <button onClick={() => setAuthMode('login')} className="text-medred-600 dark:text-medred-400 font-bold hover:underline">Sign in here</button></p>
+                ) : (
+                  <p>First-time doctor user? <button onClick={() => setAuthMode('signup')} className="text-medred-600 dark:text-medred-400 font-bold hover:underline">Sign up here</button></p>
+                )}
+              </div>
+
+              {/* GOOGLE OAUTH ACCOUNT CHOOSER LIGHTBOX MODAL */}
+              {googleModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn" onClick={() => setGoogleModalOpen(false)}>
+                  <div className="relative glass-panel border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-sm w-full text-left space-y-5 shadow-2xl bg-white dark:bg-slate-900" onClick={e => e.stopPropagation()}>
+                    
+                    {/* Google Header */}
+                    <div className="text-center space-y-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                      <svg className="w-8 h-8 mx-auto" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100">Choose a Google Account</h3>
+                      <p className="text-xs text-slate-500">to continue to <strong>Doctor Medicine Portal</strong></p>
+                    </div>
+
+                    {!showCustomGmail ? (
+                      /* Select Existing Google Accounts */
+                      <div className="space-y-2">
+                        {/* Account 1: Dr. Rupak Biswas */}
+                        <div 
+                          onClick={() => {
+                            setGoogleModalOpen(false);
+                            setDoctor({ ...doctor, name: 'Dr. Rupak Biswas', email: 'rupak.biswas@gmail.com', phone: '+91 98765 43210' });
+                            setToken('google_jwt_token_rupak');
+                          }}
+                          className="flex items-center gap-3.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-medred-600 hover:bg-medred-50/40 dark:hover:bg-medred-950/20 cursor-pointer transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow">
+                            RB
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-medred-600 transition-colors">Dr. Rupak Biswas</p>
+                            <p className="text-[11px] text-slate-500 truncate">rupak.biswas@gmail.com</p>
+                          </div>
+                          <span className="text-[10px] font-bold text-emerald-600 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50">Verified</span>
+                        </div>
+
+                        {/* Account 2: Dr. Rahul Sharma */}
+                        <div 
+                          onClick={() => {
+                            setGoogleModalOpen(false);
+                            setDoctor({ ...doctor, name: 'Dr. Rahul Sharma', email: 'dr.rahul.sharma.md@gmail.com', phone: '+91 98123 45678' });
+                            setToken('google_jwt_token_rahul');
+                          }}
+                          className="flex items-center gap-3.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-medred-600 hover:bg-medred-50/40 dark:hover:bg-medred-950/20 cursor-pointer transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-medred-600 text-white font-bold flex items-center justify-center text-sm shadow">
+                            RS
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-medred-600 transition-colors">Dr. Rahul Sharma</p>
+                            <p className="text-[11px] text-slate-500 truncate">dr.rahul.sharma.md@gmail.com</p>
+                          </div>
+                        </div>
+
+                        {/* Option 3: Add Custom Gmail */}
+                        <div 
+                          onClick={() => setShowCustomGmail(true)}
+                          className="flex items-center gap-3.5 p-3 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-medred-600 cursor-pointer transition-all text-xs font-bold text-slate-700 dark:text-slate-300"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+                            <i data-lucide="plus" className="w-5 h-5"></i>
+                          </div>
+                          <span>Use another Gmail account...</span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Custom Gmail Address Input */
+                      <form 
+                        onSubmit={e => {
+                          e.preventDefault();
+                          if (customGmail.trim()) {
+                            const displayName = customGmailName.trim() || customGmail.split('@')[0];
+                            setGoogleModalOpen(false);
+                            setShowCustomGmail(false);
+                            setDoctor({ ...doctor, name: `Dr. ${displayName}`, email: customGmail.trim(), phone: '+91 98765 43210' });
+                            setToken('google_custom_jwt_token');
+                          }
+                        }}
+                        className="space-y-3"
+                      >
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Your Doctor Name</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Dr. Rupak Biswas"
+                            value={customGmailName}
+                            onChange={e => setCustomGmailName(e.target.value)}
+                            className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-slate-100" 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Enter Gmail Address *</label>
+                          <input 
+                            type="email" 
+                            placeholder="yourname@gmail.com"
+                            value={customGmail}
+                            onChange={e => setCustomGmail(e.target.value)}
+                            className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-xs text-slate-900 dark:text-slate-100" 
+                            required 
+                          />
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button type="button" onClick={() => setShowCustomGmail(false)} className="w-1/2 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300">Back</button>
+                          <button type="submit" className="w-1/2 py-2.5 rounded-xl bg-medred-600 text-white text-xs font-bold shadow">Sign In / Register</button>
+                        </div>
+                      </form>
+                    )}
+
+                    <div className="pt-2 text-center">
+                      <button onClick={() => { setGoogleModalOpen(false); setShowCustomGmail(false); }} className="text-xs text-slate-400 hover:text-slate-600 font-medium">Cancel</button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* MICROSOFT OAUTH ACCOUNT CHOOSER LIGHTBOX MODAL */}
+              {msModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn" onClick={() => setMsModalOpen(false)}>
+                  <div className="relative glass-panel border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-sm w-full text-left space-y-5 shadow-2xl bg-white dark:bg-slate-900" onClick={e => e.stopPropagation()}>
+                    
+                    {/* Microsoft Header */}
+                    <div className="text-center space-y-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                      <svg className="w-8 h-8 mx-auto" viewBox="0 0 23 23">
+                        <path fill="#f35325" d="M1 1h10v10H1z"/>
+                        <path fill="#81bc06" d="M12 1h10v10H1z"/>
+                        <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                        <path fill="#ffba08" d="M12 12h10v10H1z"/>
+                      </svg>
+                      <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100">Pick a Microsoft Account</h3>
+                      <p className="text-xs text-slate-500">to continue to <strong>Doctor Medicine Portal</strong></p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div 
+                        onClick={() => {
+                          setMsModalOpen(false);
+                          setDoctor({ ...doctor, name: 'Dr. Rupak Biswas', email: 'rupak.biswas@outlook.com', phone: '+91 98765 43210' });
+                          setToken('ms_jwt_token_rupak');
+                        }}
+                        className="flex items-center gap-3.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 cursor-pointer transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow">
+                          RB
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-blue-500 transition-colors">Dr. Rupak Biswas</p>
+                          <p className="text-[11px] text-slate-500 truncate">rupak.biswas@outlook.com</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 text-center">
+                      <button onClick={() => setMsModalOpen(false)} className="text-xs text-slate-400 hover:text-slate-600 font-medium">Cancel</button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        );
+      }
+
+      const filteredMedicines = medicines.filter(m => {
+        const matchesSearch = !globalSearch || m.medicineName.toLowerCase().includes(globalSearch.toLowerCase()) || m.companyName.toLowerCase().includes(globalSearch.toLowerCase());
+        const matchesCompany = !companyFilter || m.companyId === Number(companyFilter);
+        return matchesSearch && matchesCompany;
+      });
+
+      const favoriteMrsList = [];
+      companies.forEach(c => {
+        c.mrs.forEach(mr => {
+          if (favoriteMrIds.includes(mr.id)) {
+            favoriteMrsList.push({ mr, companyName: c.companyName, companyId: c.id, medicines: medicines.filter(m => m.companyId === c.id) });
+          }
+        });
+      });
+
+      const unreadCount = notificationsList.filter(n => !n.read).length;
+
+      return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col transition-colors">
+          {/* Click Anywhere Outside Listener for Profile Dropdown & Notifications */}
+          {(profileDropdownOpen || notificationsOpen) && (
+            <div 
+              className="fixed inset-0 z-40 bg-transparent cursor-default" 
+              onClick={() => { setProfileDropdownOpen(false); setNotificationsOpen(false); }} 
+            />
+          )}
+
+          {/* Top Navbar with Red Accent */}
+          <header className="sticky top-0 z-40 bg-white border-b border-slate-200 dark:bg-slate-900/90 dark:border-slate-800 px-6 py-3.5 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('dashboard')}>
+              <div className="w-10 h-10 rounded-xl bg-medred-600 text-white flex items-center justify-center shadow-md shadow-medred-600/20">
+                <i data-lucide="cross" className="w-5 h-5"></i>
+              </div>
+              <div>
+                <h1 className="font-bold text-lg text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  MedicPortal <span className="text-[11px] px-2 py-0.5 rounded-full bg-medred-50 text-medred-600 font-bold border border-medred-100 dark:bg-medred-900/30 dark:text-medred-400">Doctor Portal v2</span>
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Medical Representative Information System</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button onClick={() => { setCurrentView('upload'); setUploadStep('UPLOAD'); }} className="flex items-center gap-2 bg-medred-600 hover:bg-medred-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-medred-600/15">
+                <i data-lucide="upload-cloud" className="w-4 h-4"></i> Upload Document
+              </button>
+
+              {/* Bell Notifications */}
+              <div className="relative z-50">
+                <button 
+                  onClick={() => setNotificationsOpen(!notificationsOpen)} 
+                  className="p-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-all"
+                  title="Doctor Notifications"
+                >
+                  <i data-lucide="bell" className="w-5 h-5"></i>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-medred-600 text-white font-extrabold text-[10px] min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {notificationsOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                      <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="bell" className="w-4 h-4 text-medred-600"></i> Notifications ({unreadCount} Unread)
+                      </h3>
+                      {unreadCount > 0 && (
+                        <button 
+                          onClick={() => setNotificationsList(notificationsList.map(n => ({ ...n, read: true })))} 
+                          className="text-[11px] font-bold text-medred-600 hover:underline"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {notificationsList.map(n => (
+                        <div 
+                          key={n.id} 
+                          onClick={() => setNotificationsList(notificationsList.map(item => item.id === n.id ? { ...item, read: true } : item))}
+                          className={`p-3 rounded-xl border text-xs space-y-1 transition-all cursor-pointer ${n.read ? 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 opacity-75' : 'bg-medred-50/70 dark:bg-medred-950/40 border-medred-100 dark:border-medred-900/60 font-semibold'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                              {!n.read && <span className="w-2 h-2 rounded-full bg-medred-600"></span>}
+                              {n.title}
+                            </p>
+                            <span className="text-[10px] text-slate-400 font-normal">{n.time}</span>
+                          </div>
+                          <p className="text-slate-600 dark:text-slate-400 text-[11px]">{n.message}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* REDIRECT LINK DIRECTLY TO SETTINGS -> NOTIFICATIONS */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <button 
+                        onClick={() => { 
+                          setNotificationsOpen(false); 
+                          setCurrentView('settings'); 
+                          setSettingsTab('notifications'); 
+                        }} 
+                        className="w-full text-center py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-medred-50 dark:hover:bg-medred-950/40 text-medred-600 dark:text-medred-400 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <i data-lucide="settings" className="w-3.5 h-3.5"></i> Notification Settings & Preferences →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Profile Avatar & Dropdown */}
+              <div className="relative z-50">
+                <button onClick={() => setProfileDropdownOpen(!profileDropdownOpen)} className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800">
+                  {doctor.profilePictureUrl ? (
+                    <img src={doctor.profilePictureUrl} className="w-9 h-9 rounded-full object-cover border-2 border-medred-600" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-medred-50 dark:bg-medred-950/60 border-2 border-medred-600 flex items-center justify-center text-medred-600 dark:text-medred-400 font-bold text-xs">
+                      {getInitials(doctor.name)}
+                    </div>
+                  )}
+                  <div className="hidden lg:block text-left text-xs">
+                    <p className="font-bold text-slate-900 dark:text-slate-100">{doctor.name}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{doctor.email}</p>
+                  </div>
+                </button>
+
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 space-y-1 text-xs">
+                    <div className="p-3 border-b border-slate-100 dark:border-slate-800">
+                      <p className="font-bold text-slate-900 dark:text-slate-100">{doctor.name}</p>
+                      <p className="text-slate-500 truncate">{doctor.email}</p>
+                    </div>
+                    <button onClick={() => { setCurrentView('profile'); setProfileDropdownOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <i data-lucide="user" className="w-4 h-4 text-medred-600"></i> My Profile
+                    </button>
+                    <button onClick={() => { setCurrentView('favorites'); setProfileDropdownOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <i data-lucide="heart" className="w-4 h-4 text-rose-500"></i> Favorites
+                    </button>
+                    <button onClick={() => { setCurrentView('settings'); setProfileDropdownOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <i data-lucide="settings" className="w-4 h-4 text-slate-500"></i> Settings
+                    </button>
+                    <button onClick={() => setToken(null)} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                      <i data-lucide="log-out" className="w-4 h-4"></i> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          <div className="flex flex-1">
+            {/* Sidebar Navigation */}
+            <aside className="w-64 bg-white border-r border-slate-200 dark:bg-slate-900/90 dark:border-slate-800 p-4 min-h-[calc(100vh-65px)] flex flex-col justify-between">
+              <div className="space-y-6">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Main Navigation</p>
+                <nav className="space-y-1">
+                  {[
+                    { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+                    { id: 'medicines', label: 'Medicines Catalog', icon: 'pill' },
+                    { id: 'companies', label: 'Companies & MRs', icon: 'building-2' },
+                    { id: 'upload', label: 'Upload Document', icon: 'upload-cloud' },
+                    { id: 'documents', label: 'Uploaded Archive', icon: 'file-text' },
+                    { id: 'favorites', label: 'Favorites', icon: 'heart' },
+                    { id: 'settings', label: 'Settings', icon: 'settings' }
+                  ].map(item => (
+                    <button key={item.id} onClick={() => { setCurrentView(item.id); if (item.id==='upload') setUploadStep('UPLOAD'); }} className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${currentView === item.id ? 'bg-medred-600 text-white shadow-md shadow-medred-600/15' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                      <i data-lucide={item.icon} className="w-4 h-4"></i> {item.label}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </aside>
+
+            {/* Main Content Pages */}
+            <main className="flex-1 p-6 md:p-8 space-y-8 overflow-y-auto">
+
+              {/* DASHBOARD */}
+              {currentView === 'dashboard' && (
+                <div className="space-y-8">
+                  {/* Dashboard Header Banner */}
+                  <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <h2 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                      Doctor Portal Overview <i data-lucide="activity" className="w-5 h-5 text-medred-600"></i>
+                    </h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                      Overview of extracted medicine records, pharma companies, and MR representative contacts.
+                    </p>
+                  </div>
+
+                  {/* Interactive Quick Action Buttons Strip */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <button onClick={() => setCurrentView('medicines')} className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800 transition-all flex flex-col items-center gap-1.5 shadow-sm">
+                      <i data-lucide="pill" className="w-5 h-5 text-medred-600"></i> Medicines
+                    </button>
+                    <button onClick={() => setCurrentView('companies')} className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800 transition-all flex flex-col items-center gap-1.5 shadow-sm">
+                      <i data-lucide="building-2" className="w-5 h-5 text-blue-500"></i> Companies
+                    </button>
+                    <button onClick={() => setCurrentView('favorites')} className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800 transition-all flex flex-col items-center gap-1.5 shadow-sm">
+                      <i data-lucide="heart" className="w-5 h-5 text-rose-500"></i> Favorites
+                    </button>
+                    <button onClick={() => setCurrentView('documents')} className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-800 transition-all flex flex-col items-center gap-1.5 shadow-sm">
+                      <i data-lucide="file-text" className="w-5 h-5 text-emerald-500"></i> Archive
+                    </button>
+                  </div>
+
+                  {/* Interactive Stat Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {/* Stat Card 1: Medicines */}
+                    <div 
+                      onClick={() => setCurrentView('medicines')} 
+                      className="glass-card p-6 rounded-3xl flex items-center justify-between cursor-pointer group transition-all hover:scale-[1.02]"
+                      title="Click to view all medicines"
+                    >
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-medred-600 transition-colors">Total Medicines</p>
+                        <h3 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">{medicines.length}</h3>
+                        <p className="text-xs text-medred-600 font-bold mt-1 flex items-center gap-1">Browse Catalog →</p>
+                      </div>
+                      <div className="w-14 h-14 rounded-2xl bg-medred-50 dark:bg-medred-950/60 text-medred-600 border border-medred-100 dark:border-medred-900 flex items-center justify-center shadow-inner">
+                        <i data-lucide="pill" className="w-7 h-7"></i>
+                      </div>
+                    </div>
+
+                    {/* Stat Card 2: Companies */}
+                    <div 
+                      onClick={() => setCurrentView('companies')} 
+                      className="glass-card p-6 rounded-3xl flex items-center justify-between cursor-pointer group transition-all hover:scale-[1.02]"
+                      title="Click to view pharma companies & MRs"
+                    >
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-blue-500 transition-colors">Total Companies</p>
+                        <h3 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">{companies.length}</h3>
+                        <p className="text-xs text-blue-500 font-bold mt-1 flex items-center gap-1">View Companies →</p>
+                      </div>
+                      <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 border border-blue-100 dark:border-blue-900 flex items-center justify-center shadow-inner">
+                        <i data-lucide="building-2" className="w-7 h-7"></i>
+                      </div>
+                    </div>
+
+                    {/* Stat Card 3: Favorites */}
+                    <div 
+                      onClick={() => setCurrentView('favorites')} 
+                      className="glass-card p-6 rounded-3xl flex items-center justify-between cursor-pointer group transition-all hover:scale-[1.02]"
+                      title="Click to view favorite MRs"
+                    >
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-500 transition-colors">Favorite MRs</p>
+                        <h3 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">{favoriteMrIds.length}</h3>
+                        <p className="text-xs text-rose-500 font-bold mt-1 flex items-center gap-1">View Favorites →</p>
+                      </div>
+                      <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 border border-rose-100 dark:border-rose-900 flex items-center justify-center shadow-inner">
+                        <i data-lucide="heart" className="w-7 h-7"></i>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recently Added Table with Interactive Row Buttons */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="clock" className="w-4 h-4 text-medred-600"></i> Recently Added Medicines
+                      </h3>
+                      <button onClick={() => setCurrentView('medicines')} className="text-xs font-bold text-medred-600 hover:text-medred-700 flex items-center gap-1">
+                        View All Medicines Catalog →
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-800 glass-panel shadow-sm">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-100 dark:bg-slate-900 text-xs uppercase text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                          <tr>
+                            <th className="px-6 py-4">Medicine Name</th>
+                            <th className="px-6 py-4">Pharma Company</th>
+                            <th className="px-6 py-4">Composition</th>
+                            <th className="px-6 py-4">MR Contact</th>
+                            <th className="px-6 py-4 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {medicines.map(m => (
+                            <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                              <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-100">{m.medicineName}</td>
+                              <td className="px-6 py-4">
+                                <button onClick={() => setCurrentView('companies')} className="text-medred-600 dark:text-medred-400 font-bold hover:underline">
+                                  {m.companyName}
+                                </button>
+                              </td>
+                              <td className="px-6 py-4 text-xs font-mono text-slate-500 dark:text-slate-400">{m.composition}</td>
+                              <td className="px-6 py-4 text-xs">
+                                <span className="font-semibold text-slate-800 dark:text-slate-200 block">{m.mrName}</span>
+                                {m.mrContact && (
+                                  <a href={`tel:${m.mrContact}`} className="text-[11px] text-medred-600 font-bold hover:underline">
+                                    Call {m.mrContact}
+                                  </a>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <button 
+                                  onClick={() => { setSelectedMedicineId(m.id); setCurrentView('medicines'); }} 
+                                  className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-medred-600 hover:text-white text-slate-700 dark:text-slate-300 text-xs font-bold transition-all shadow-sm"
+                                >
+                                  View Details →
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* FAVORITES VIEW */}
+              {currentView === 'favorites' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                      <i data-lucide="heart" className="w-6 h-6 text-rose-500"></i> Favorite Medical Representatives ({favoriteMrsList.length})
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Quick access list of your saved pharmaceutical representatives and their medicine details.
+                    </p>
+                  </div>
+
+                  {favoriteMrsList.length === 0 ? (
+                    <div className="glass-panel p-10 rounded-3xl text-center space-y-4 border border-slate-200 dark:border-slate-800">
+                      <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center mx-auto">
+                        <i data-lucide="heart-off" className="w-7 h-7"></i>
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100">No Favorite MRs Saved</h3>
+                        <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                          You haven't added any Medical Representatives to your favorites yet. Visit the Companies section to add them.
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => setCurrentView('companies')} 
+                        className="bg-medred-600 hover:bg-medred-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs shadow-md shadow-medred-600/15"
+                      >
+                        Browse Companies & Add Favorites →
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {favoriteMrsList.map(({ mr, companyName, medicines: medList }) => (
+                        <div key={mr.id} className="glass-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm hover:scale-[1.01] transition-all">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                <i data-lucide="heart" className="w-4 h-4 text-rose-500 fill-rose-500"></i> {mr.mrName}
+                              </h3>
+                              <p className="text-xs text-medred-600 font-bold mt-0.5">{companyName}</p>
+                            </div>
+                            <button 
+                              onClick={() => handleToggleFavorite(mr.id)} 
+                              className="px-3 py-1 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-500 hover:text-white transition-all"
+                            >
+                              Remove Favorite
+                            </button>
+                          </div>
+                          <div className="p-3 bg-slate-100 dark:bg-slate-900 rounded-xl text-xs flex justify-between items-center border border-slate-200 dark:border-slate-800">
+                            <span className="text-slate-600 dark:text-slate-300 font-medium">Contact: {mr.contactNumber}</span>
+                            <a href={`tel:${mr.contactNumber}`} className="text-medred-600 font-bold hover:underline">Call MR</a>
+                          </div>
+                          <div>
+                            <p className="text-[11px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Associated Medicines ({medList.length})</p>
+                            <ul className="text-xs space-y-1">
+                              {medList.map(m => (
+                                <li key={m.id} className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-medred-600"></span> {m.medicineName}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* PROFILE VIEW */}
+              {currentView === 'profile' && (
+                <div className="max-w-3xl mx-auto space-y-6">
+                  <h2 className="text-2xl font-bold">Doctor Profile</h2>
+                  <div className="glass-panel p-8 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-6">
+                      {/* Avatar container */}
+                      <div className="relative group">
+                        {/* Profile Picture: CLICK TO ZOOM IN FORMAT */}
+                        <div 
+                          className="cursor-pointer group-hover:opacity-90 transition-opacity" 
+                          onClick={() => setZoomModalOpen(true)}
+                          title="Click to view zoomed profile picture"
+                        >
+                          {doctor.profilePictureUrl ? (
+                            <img src={doctor.profilePictureUrl} className="w-28 h-28 rounded-full object-cover border-4 border-medred-600 shadow-xl" />
+                          ) : (
+                            <div className="w-28 h-28 rounded-full bg-medred-50 dark:bg-medred-950 border-4 border-medred-600 flex items-center justify-center text-medred-600 dark:text-medred-400 text-3xl font-extrabold shadow-xl">
+                              {getInitials(doctor.name)}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Camera Icon Badge: CLICK STRICTLY TO CHANGE / UPLOAD PHOTO */}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); document.getElementById('avatar-file-input').click(); }}
+                          className="w-9 h-9 rounded-full bg-medred-600 hover:bg-medred-700 text-white flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-900 absolute bottom-0 right-0 transition-transform hover:scale-110"
+                          title="Upload / Change Profile Picture"
+                        >
+                          <i data-lucide="camera" className="w-4 h-4"></i>
+                        </button>
+                        
+                        <input
+                          id="avatar-file-input"
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.webp"
+                          className="hidden"
+                          onChange={e => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const url = URL.createObjectURL(file);
+                              setDoctor({...doctor, profilePictureUrl: url});
+                            }
+                          }}
+                        />
+                      </div>
+
+                      <div className="text-center sm:text-left">
+                        <h3 className="text-xl font-bold">{doctor.name}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{doctor.email}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Contact: {doctor.phone}</p>
+
+                        <div className="mt-3 flex items-center gap-2">
+                          <button onClick={() => document.getElementById('avatar-file-input').click()} className="px-3.5 py-1.5 rounded-xl bg-medred-600 hover:bg-medred-700 text-white text-xs font-bold shadow-md shadow-medred-600/15 flex items-center gap-1.5">
+                            <i data-lucide="camera" className="w-3.5 h-3.5"></i> Change Photo
+                          </button>
+                          {doctor.profilePictureUrl && (
+                            <button onClick={() => setDoctor({...doctor, profilePictureUrl: null})} className="px-3.5 py-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-500/20">
+                              Remove Photo
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ZOOM FORMAT PROFILE PICTURE LIGHTBOX MODAL */}
+                    {zoomModalOpen && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md" onClick={() => setZoomModalOpen(false)}>
+                        <div className="relative glass-panel border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl bg-white dark:bg-slate-900" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">{doctor.name} — Profile Picture</h3>
+                            <button onClick={() => setZoomModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                              <i data-lucide="x" className="w-5 h-5"></i>
+                            </button>
+                          </div>
+
+                          {/* Zoomed Image */}
+                          <div className="flex justify-center p-2">
+                            {doctor.profilePictureUrl ? (
+                              <img src={doctor.profilePictureUrl} alt={doctor.name} className="w-72 h-72 rounded-3xl object-cover border-4 border-medred-600 shadow-2xl" />
+                            ) : (
+                              <div className="w-72 h-72 rounded-3xl bg-medred-50 dark:bg-medred-950 border-4 border-medred-600 flex items-center justify-center text-medred-600 dark:text-medred-400 text-6xl font-extrabold shadow-2xl">
+                                {getInitials(doctor.name)}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-center gap-3 pt-2">
+                            <button onClick={() => { setZoomModalOpen(false); document.getElementById('avatar-file-input').click(); }} className="px-4 py-2 rounded-xl bg-medred-600 hover:bg-medred-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md">
+                              <i data-lucide="camera" className="w-4 h-4"></i> Change Photo
+                            </button>
+                            <button onClick={() => setZoomModalOpen(false)} className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold">
+                              Close
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <form onSubmit={e => { e.preventDefault(); alert('Profile updated successfully.'); }} className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800 text-xs">
+                      <div>
+                        <label className="block font-bold mb-1">Full Name</label>
+                        <input type="text" value={doctor.name} onChange={e => setDoctor({...doctor, name: e.target.value})} className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-sm" />
+                      </div>
+                      <div>
+                        <label className="block font-bold mb-1">Email</label>
+                        <input type="email" value={doctor.email} onChange={e => setDoctor({...doctor, email: e.target.value})} className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-sm" />
+                      </div>
+                      <div>
+                        <label className="block font-bold mb-1">Contact Phone</label>
+                        <input type="text" value={doctor.phone} onChange={e => setDoctor({...doctor, phone: e.target.value})} className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 text-sm" />
+                      </div>
+                      <button type="submit" className="bg-medred-600 hover:bg-medred-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-medred-600/15">
+                        Save Profile Changes
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* SETTINGS VIEW */}
+              {currentView === 'settings' && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="settings" className="w-6 h-6 text-medred-600"></i> Settings
+                  </h2>
+
+                  <div className="grid grid-cols-4 gap-6">
+                    <div className="glass-panel p-3 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-1 text-xs">
+                      {[
+                        { id: 'appearance', label: 'Appearance' },
+                        { id: 'account', label: 'Account' },
+                        { id: 'notifications', label: 'Notifications' },
+                        { id: 'preferences', label: 'Preferences' },
+                        { id: 'about', label: 'About' }
+                      ].map(t => (
+                        <button key={t.id} onClick={() => setSettingsTab(t.id)} className={`w-full text-left px-3.5 py-2.5 rounded-xl font-bold ${settingsTab === t.id ? 'bg-medred-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="col-span-3 glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800">
+                      {settingsTab === 'appearance' && (
+                        <div className="space-y-6 text-xs">
+                          {appearanceSavedMsg && (
+                            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2 animate-fadeIn">
+                              <i data-lucide="check-circle-2" className="w-4 h-4"></i> {appearanceSavedMsg}
+                            </div>
+                          )}
+
+                          {(previewThemeMode !== savedThemeMode || previewFontSizeScale !== savedFontSizeScale || previewHighContrast !== savedHighContrast) && (
+                            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-between shadow-sm">
+                              <span className="flex items-center gap-2">
+                                <i data-lucide="alert-circle" className="w-4 h-4 text-amber-500"></i> Live Unsaved Preview Active! (Navigating away will automatically reset changes)
+                              </span>
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  setPreviewThemeMode(savedThemeMode);
+                                  setPreviewFontSizeScale(savedFontSizeScale);
+                                  setPreviewHighContrast(savedHighContrast);
+                                }}
+                                className="text-[11px] underline hover:text-amber-900 dark:hover:text-amber-100 cursor-pointer"
+                              >
+                                Discard & Revert
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Section Title */}
+                          <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Appearance & Display Settings</h3>
+                            <p className="text-slate-500 mt-0.5">Clicking options immediately previews the effect live on screen. Click Save to make it permanent!</p>
+                          </div>
+
+                          {/* 1. Theme Mode Selection */}
+                          <div className="space-y-3">
+                            <label className="block font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
+                              Portal Theme Mode
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              {/* Light Theme Card */}
+                              <div 
+                                onClick={() => setPreviewThemeMode('LIGHT')} 
+                                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all space-y-3 ${
+                                  previewThemeMode === 'LIGHT' 
+                                    ? 'border-medred-600 bg-medred-50/50 dark:bg-medred-950/20 shadow-md ring-2 ring-medred-600/20' 
+                                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300'
+                                }`}
+                              >
+                                <div className="h-14 rounded-xl bg-slate-100 p-2 space-y-1.5 border border-slate-200 shadow-inner">
+                                  <div className="h-2.5 w-1/2 rounded bg-medred-600"></div>
+                                  <div className="h-2 w-3/4 rounded bg-slate-300"></div>
+                                  <div className="h-2 w-1/3 rounded bg-slate-200"></div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">☀️ Light Mode</h4>
+                                    <p className="text-[11px] text-slate-500">Crisp white & medical red</p>
+                                  </div>
+                                  <input type="radio" checked={previewThemeMode === 'LIGHT'} readOnly className="accent-medred-600 w-4 h-4" />
+                                </div>
+                              </div>
+
+                              {/* Dark Theme Card */}
+                              <div 
+                                onClick={() => setPreviewThemeMode('DARK')} 
+                                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all space-y-3 ${
+                                  previewThemeMode === 'DARK' 
+                                    ? 'border-medred-600 bg-medred-950/30 shadow-md ring-2 ring-medred-600/20' 
+                                    : 'border-slate-200 dark:border-slate-800 bg-slate-900 hover:border-slate-700'
+                                }`}
+                              >
+                                <div className="h-14 rounded-xl bg-slate-950 p-2 space-y-1.5 border border-slate-800 shadow-inner">
+                                  <div className="h-2.5 w-1/2 rounded bg-medred-600"></div>
+                                  <div className="h-2 w-3/4 rounded bg-slate-700"></div>
+                                  <div className="h-2 w-1/3 rounded bg-slate-800"></div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h4 className="font-extrabold text-slate-100 text-sm">🌙 Dark Mode</h4>
+                                    <p className="text-[11px] text-slate-400">Deep slate & glowing red</p>
+                                  </div>
+                                  <input type="radio" checked={previewThemeMode === 'DARK'} readOnly className="accent-medred-600 w-4 h-4" />
+                                </div>
+                              </div>
+
+                              {/* System Theme Card */}
+                              <div 
+                                onClick={() => setPreviewThemeMode('SYSTEM')} 
+                                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all space-y-3 ${
+                                  previewThemeMode === 'SYSTEM' 
+                                    ? 'border-medred-600 bg-medred-50/50 dark:bg-medred-950/20 shadow-md ring-2 ring-medred-600/20' 
+                                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300'
+                                }`}
+                              >
+                                <div className="h-14 rounded-xl bg-gradient-to-r from-slate-100 to-slate-950 p-2 space-y-1.5 border border-slate-300 dark:border-slate-700 shadow-inner flex items-center justify-center">
+                                  <i data-lucide="laptop" className="w-6 h-6 text-slate-500"></i>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h4 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">💻 System Default</h4>
+                                    <p className="text-[11px] text-slate-500">Auto syncs with OS mode</p>
+                                  </div>
+                                  <input type="radio" checked={previewThemeMode === 'SYSTEM'} readOnly className="accent-medred-600 w-4 h-4" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 2. Global Font Size & Scale Controller */}
+                          <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div className="grid grid-cols-3 gap-3">
+                              {[
+                                { id: 'SMALL', label: 'Compact (85%)', desc: 'Dense text view (14px)' },
+                                { id: 'NORMAL', label: 'Standard (100%)', desc: 'Default SaaS view (16px)' },
+                                { id: 'LARGE', label: 'High Legibility (115%)', desc: 'Clinical high-contrast view (18px)' }
+                              ].map(f => (
+                                <button
+                                  key={f.id}
+                                  type="button"
+                                  onClick={() => setPreviewFontSizeScale(f.id)}
+                                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                                    previewFontSizeScale === f.id
+                                      ? 'bg-medred-600 text-white border-medred-600 shadow-md shadow-medred-600/20 ring-2 ring-medred-600/30'
+                                      : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-medred-500'
+                                  }`}
+                                >
+                                  <p className="font-extrabold text-xs">{f.label}</p>
+                                  <p className={`text-[10px] mt-0.5 ${previewFontSizeScale === f.id ? 'text-white/80' : 'text-slate-500'}`}>{f.desc}</p>
+                                </button>
+                              ))}
+                            </div>
+
+                            {/* Live Font Scale Preview Box */}
+                            <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
+                              <p className="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Live Typography Preview (Current Live Scale)</p>
+                              <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1">
+                                <p className="font-extrabold text-slate-900 dark:text-slate-100">Volini Gel 50g • Sun Pharma</p>
+                                <p className="text-slate-500 italic text-[11px]">Active Formula: Diclofenac Diethylamine 1.16% w/w, Linseed Oil 3.0% w/w</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 3. Clinical High Contrast Mode Toggle */}
+                          <div className="p-4 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between transition-all">
+                            <div>
+                              <p className="font-bold text-slate-900 dark:text-slate-100 text-xs">High Contrast Readability Mode</p>
+                              <p className="text-slate-500 text-[11px] mt-0.5">Enhances text contrast for optimal reading under clinic fluorescent lighting.</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewHighContrast(!previewHighContrast)}
+                              className={`relative w-20 h-9 rounded-full p-1 transition-all duration-300 flex items-center justify-between cursor-pointer select-none shadow-md ${
+                                previewHighContrast
+                                  ? 'bg-emerald-600 shadow-emerald-500/30 ring-2 ring-emerald-500/30'
+                                  : 'bg-slate-300 dark:bg-slate-700'
+                              }`}
+                            >
+                              {previewHighContrast ? (
+                                <>
+                                  <span className="text-[11px] font-extrabold text-white pl-2">ON</span>
+                                  <span className="w-7 h-7 rounded-full bg-white shadow-lg block" />
+                                </>
+                              ) : (
+                                <>
+                                  <span className="w-7 h-7 rounded-full bg-white shadow-md block" />
+                                  <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 pr-2">OFF</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          {/* Save CTA */}
+                          <div className="pt-2 flex items-center justify-between">
+                            {(previewThemeMode !== savedThemeMode || previewFontSizeScale !== savedFontSizeScale || previewHighContrast !== savedHighContrast) ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPreviewThemeMode(savedThemeMode);
+                                  setPreviewFontSizeScale(savedFontSizeScale);
+                                  setPreviewHighContrast(savedHighContrast);
+                                }}
+                                className="px-4 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-xs font-semibold cursor-pointer"
+                              >
+                                Discard Unsaved Changes
+                              </button>
+                            ) : <div />}
+
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                setSavedThemeMode(previewThemeMode);
+                                setSavedFontSizeScale(previewFontSizeScale);
+                                setSavedHighContrast(previewHighContrast);
+                                const updatedDoctor = { 
+                                  ...doctor, 
+                                  themePreference: previewThemeMode, 
+                                  fontSizeScale: previewFontSizeScale, 
+                                  highContrast: previewHighContrast 
+                                };
+                                setDoctor(updatedDoctor);
+                                localStorage.setItem('portal_doctor_v2', JSON.stringify(updatedDoctor));
+                                setAppearanceSavedMsg('Appearance preferences saved & committed permanently!');
+                                setTimeout(() => setAppearanceSavedMsg(''), 3500);
+                              }}
+                              className="bg-medred-600 hover:bg-medred-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-medred-600/20 transition-all flex items-center gap-2 cursor-pointer ml-auto"
+                            >
+                              <i data-lucide="check" className="w-4 h-4"></i> Save Appearance Settings
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {settingsTab === 'account' && (
+                        <div className="space-y-4 text-xs">
+                          <h3 className="font-bold text-base">Doctor Account</h3>
+                          <p>Doctor Name: {doctor.name}</p>
+                          <p>Email: {doctor.email}</p>
+                          <button onClick={() => alert('Password update form opens')} className="bg-medred-600 text-white px-4 py-2 rounded-xl font-bold">Change Password</button>
+                        </div>
+                      )}
+
+                      {settingsTab === 'notifications' && (
+                        <div className="space-y-4 text-xs">
+                          <div>
+                            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Notification Alerts & Preferences</h3>
+                            <p className="text-slate-500 mt-0.5">Manage real-time push alerts for OCR processing and extraction verification.</p>
+                          </div>
+
+                          <div className="space-y-3">
+                            {/* Document Processing Alerts Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all">
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">Document Processing Alerts</p>
+                                <p className="text-slate-500 text-xs mt-0.5">Notify when OCR extraction finishes on uploaded brochures.</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setNotifSettings({ ...notifSettings, documentAlerts: !notifSettings.documentAlerts })}
+                                className={`relative w-20 h-9 rounded-full p-1 transition-all duration-300 flex items-center justify-between cursor-pointer select-none shadow-md ${
+                                  notifSettings.documentAlerts
+                                    ? 'bg-emerald-600 shadow-emerald-500/30 ring-2 ring-emerald-500/30'
+                                    : 'bg-slate-300 dark:bg-slate-700'
+                                }`}
+                                title={notifSettings.documentAlerts ? "Click to Disable (Turn OFF)" : "Click to Enable (Turn ON)"}
+                              >
+                                {notifSettings.documentAlerts ? (
+                                  <>
+                                    <span className="text-[11px] font-extrabold text-white pl-2">ON</span>
+                                    <span className="w-7 h-7 rounded-full bg-white shadow-lg block" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="w-7 h-7 rounded-full bg-white shadow-md block" />
+                                    <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 pr-2">OFF</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            {/* Extraction Review Reminders Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all">
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">Extraction Review Reminders</p>
+                                <p className="text-slate-500 text-xs mt-0.5">Notify when doctor confirmation is needed for complex medicine data.</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setNotifSettings({ ...notifSettings, reviewReminders: !notifSettings.reviewReminders })}
+                                className={`relative w-20 h-9 rounded-full p-1 transition-all duration-300 flex items-center justify-between cursor-pointer select-none shadow-md ${
+                                  notifSettings.reviewReminders
+                                    ? 'bg-emerald-600 shadow-emerald-500/30 ring-2 ring-emerald-500/30'
+                                    : 'bg-slate-300 dark:bg-slate-700'
+                                }`}
+                                title={notifSettings.reviewReminders ? "Click to Disable (Turn OFF)" : "Click to Enable (Turn ON)"}
+                              >
+                                {notifSettings.reviewReminders ? (
+                                  <>
+                                    <span className="text-[11px] font-extrabold text-white pl-2">ON</span>
+                                    <span className="w-7 h-7 rounded-full bg-white shadow-lg block" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="w-7 h-7 rounded-full bg-white shadow-md block" />
+                                    <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 pr-2">OFF</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            {/* Security Alerts Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl transition-all">
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">Security Alerts (Recommended)</p>
+                                <p className="text-slate-500 text-xs mt-0.5">Notify on session logins or password changes.</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setNotifSettings({ ...notifSettings, securityAlerts: !notifSettings.securityAlerts })}
+                                className={`relative w-20 h-9 rounded-full p-1 transition-all duration-300 flex items-center justify-between cursor-pointer select-none shadow-md ${
+                                  notifSettings.securityAlerts
+                                    ? 'bg-emerald-600 shadow-emerald-500/30 ring-2 ring-emerald-500/30'
+                                    : 'bg-slate-300 dark:bg-slate-700'
+                                }`}
+                                title={notifSettings.securityAlerts ? "Click to Disable (Turn OFF)" : "Click to Enable (Turn ON)"}
+                              >
+                                {notifSettings.securityAlerts ? (
+                                  <>
+                                    <span className="text-[11px] font-extrabold text-white pl-2">ON</span>
+                                    <span className="w-7 h-7 rounded-full bg-white shadow-lg block" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="w-7 h-7 rounded-full bg-white shadow-md block" />
+                                    <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 pr-2">OFF</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {settingsTab === 'preferences' && (
+                        <div className="space-y-6 text-xs">
+                          <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Portal Preferences</h3>
+                            <p className="text-slate-500 mt-0.5">Customize default catalog layouts, date ranges, and accessibility parameters.</p>
+                          </div>
+
+                          {/* Default Layout View */}
+                          <div className="space-y-2">
+                            <label className="block font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">Default Medicine View</label>
+                            <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => setDoctor({...doctor, defaultView: 'GRID'})} 
+                                className={`px-4 py-2.5 rounded-xl font-bold border transition-all ${doctor.defaultView !== 'TABLE' ? 'bg-medred-600 text-white border-medred-600 shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'}`}
+                              >
+                                Grid Cards Layout
+                              </button>
+                              <button 
+                                onClick={() => setDoctor({...doctor, defaultView: 'TABLE'})} 
+                                className={`px-4 py-2.5 rounded-xl font-bold border transition-all ${doctor.defaultView === 'TABLE' ? 'bg-medred-600 text-white border-medred-600 shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'}`}
+                              >
+                                Data Table Layout
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Default Dashboard Date Range */}
+                          <div className="space-y-2">
+                            <label className="block font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">Default Dashboard Date Filter</label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {['TODAY', '7DAYS', '30DAYS'].map(range => (
+                                <button
+                                  key={range}
+                                  onClick={() => setDoctor({...doctor, defaultDateRange: range})}
+                                  className={`p-3 rounded-xl border font-bold transition-all text-center ${doctor.defaultDateRange === range ? 'bg-medred-600 text-white border-medred-600 shadow-sm' : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'}`}
+                                >
+                                  {range === 'TODAY' ? 'Today' : range === '7DAYS' ? 'Last 7 Days' : 'Last 30 Days'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Items Per Page */}
+                          <div className="space-y-2">
+                            <label className="block font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">Items Per Page (Pagination Limit)</label>
+                            <div className="flex items-center gap-3">
+                              {[10, 25, 50].map(count => (
+                                <button
+                                  key={count}
+                                  onClick={() => setDoctor({...doctor, itemsPerPage: count})}
+                                  className={`px-4 py-2 rounded-xl border font-bold text-xs transition-all ${doctor.itemsPerPage === count ? 'bg-medred-600 text-white border-medred-600' : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'}`}
+                                >
+                                  {count} Records
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Accessibility: Reduce Motion */}
+                          <div className="p-4 bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between">
+                            <div>
+                              <p className="font-bold text-slate-900 dark:text-slate-100">Accessibility: Reduce Motion</p>
+                              <p className="text-slate-500 text-[11px] mt-0.5">Minimizes smooth page transitions and hover animations.</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const nextVal = !reduceMotion;
+                                setReduceMotion(nextVal);
+                                setDoctor({...doctor, reduceMotion: nextVal});
+                              }}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reduceMotion ? 'bg-medred-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                            >
+                              {reduceMotion ? 'Reduce Motion ON' : 'Reduce Motion OFF'}
+                            </button>
+                          </div>
+
+                          <div className="pt-2 flex justify-end">
+                            <button onClick={() => alert('Preferences saved successfully.')} className="bg-medred-600 hover:bg-medred-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-medred-600/15">
+                              Save Preferences
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {settingsTab === 'about' && (
+                        <div className="space-y-3 text-xs">
+                          <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">About Portal</h3>
+                          <p className="font-bold text-medred-600">Doctor Medicine Information Portal v2.0.0</p>
+                          <p className="text-slate-500 leading-relaxed">
+                            A secure medical SaaS platform designed for doctors to manage, OCR extract, and digitize pharmaceutical information received from Medical Representatives (MRs).
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MEDICINES CATALOG */}
+              {currentView === 'medicines' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        Medicine Information Catalog <i data-lucide="pill" className="w-6 h-6 text-medred-600"></i>
+                      </h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Click on any medicine to inspect its original uploaded MR brochure document, composition, and clinical details.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredMedicines.map(m => (
+                      <div 
+                        key={m.id} 
+                        onClick={() => setViewingMedicineDoc(m)}
+                        className="glass-card p-6 rounded-3xl flex flex-col justify-between cursor-pointer group hover:scale-[1.02] transition-all border border-slate-200 dark:border-slate-800 shadow-sm"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start gap-2">
+                            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-medred-600 transition-colors">{m.medicineName}</h3>
+                            <span className="text-xs text-medred-600 font-bold px-2.5 py-1 rounded-full bg-medred-50 dark:bg-medred-950/60 border border-medred-100 dark:border-medred-900 shrink-0">{m.companyName}</span>
+                          </div>
+                          
+                          <div className="p-3 bg-slate-100 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1">
+                            <p className="text-[11px] uppercase font-bold text-slate-400">Active Composition</p>
+                            <p className="font-mono text-xs text-slate-700 dark:text-slate-300 line-clamp-2">{m.composition}</p>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-4 flex justify-between items-center text-xs">
+                          <span className="text-slate-500 dark:text-slate-400 font-medium">MR: <strong className="text-slate-700 dark:text-slate-200">{m.mrName}</strong></span>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setViewingMedicineDoc(m); }} 
+                            className="px-3.5 py-1.5 rounded-xl bg-medred-600 hover:bg-medred-700 text-white text-xs font-bold shadow-md shadow-medred-600/15 transition-all flex items-center gap-1"
+                          >
+                            <i data-lucide="file-text" className="w-3.5 h-3.5"></i> View Document →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* MEDICINE DOCUMENT & TECHNICAL SPECIFICATIONS LIGHTBOX MODAL */}
+              {viewingMedicineDoc && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn" onClick={() => setViewingMedicineDoc(null)}>
+                  <div className="relative glass-panel border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-2xl w-full text-left space-y-6 shadow-2xl bg-white dark:bg-slate-900 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    
+                    {/* Modal Header */}
+                    <div className="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-extrabold text-xl text-slate-900 dark:text-slate-100">{viewingMedicineDoc.medicineName}</h3>
+                          <span className="px-3 py-1 rounded-full bg-medred-50 text-medred-600 font-bold text-xs border border-medred-100 dark:bg-medred-950/60 dark:text-medred-400 dark:border-medred-900">
+                            {viewingMedicineDoc.companyName}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Verified Medicine Document & Medical Representative Brochure
+                        </p>
+                      </div>
+                      <button onClick={() => setViewingMedicineDoc(null)} className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <i data-lucide="x" className="w-5 h-5"></i>
+                      </button>
+                    </div>
+
+                    {/* Original MR Document File Card */}
+                    <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-medred-600 text-white flex items-center justify-center font-bold">
+                            <i data-lucide="file-text" className="w-5 h-5"></i>
+                          </div>
+                          <div>
+                            <p className="font-bold text-xs text-slate-900 dark:text-slate-100">
+                              {viewingMedicineDoc.companyName.replace(/\s+/g, '')}_{viewingMedicineDoc.medicineName.replace(/\s+/g, '')}_Brochure.pdf
+                            </p>
+                            <p className="text-[11px] text-slate-500">PDF Document • 1.4 MB • Status: <strong className="text-emerald-600">CONFIRMED OCR</strong></p>
+                          </div>
+                        </div>
+
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-[11px] flex items-center gap-1">
+                          <i data-lucide="check-circle-2" className="w-3.5 h-3.5"></i> Doctor Verified
+                        </span>
+                      </div>
+
+                      {/* Mock Document Visual Banner */}
+                      <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono space-y-2 text-slate-600 dark:text-slate-300">
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase">
+                          <span>[Original Scanned Brochure Header]</span>
+                          <span>{viewingMedicineDoc.companyName} Official Detailer</span>
+                        </div>
+                        <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">{viewingMedicineDoc.medicineName}</p>
+                        <p className="italic">{viewingMedicineDoc.composition}</p>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-3 pt-1">
+                        <button onClick={() => alert(`Downloading brochure file for ${viewingMedicineDoc.medicineName}...`)} className="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center gap-1.5">
+                          <i data-lucide="download" className="w-3.5 h-3.5"></i> Download PDF
+                        </button>
+                        <button onClick={() => { setViewingMedicineDoc(null); setCurrentView('documents'); }} className="px-3.5 py-1.5 rounded-xl bg-medred-600 text-white text-xs font-bold hover:bg-medred-700 flex items-center gap-1.5 shadow-sm">
+                          <i data-lucide="file-text" className="w-3.5 h-3.5"></i> View in Archive
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Detailed Specifications Grid */}
+                    <div className="space-y-4 text-xs">
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] mb-1.5 text-medred-600">Active Composition & Formula</h4>
+                        <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-950 font-mono text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800">
+                          {viewingMedicineDoc.composition}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] mb-1.5 text-medred-600">Extracted Description & Indications</h4>
+                        <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 leading-relaxed border border-slate-200 dark:border-slate-800">
+                          {viewingMedicineDoc.description || 'Topical and oral therapeutic formulation extracted from original Medical Representative detailer brochure.'}
+                        </div>
+                      </div>
+
+                      {/* MR Representative Info Box */}
+                      <div className="p-4 rounded-2xl bg-medred-50/50 dark:bg-medred-950/20 border border-medred-100 dark:border-medred-900/40 flex items-center justify-between">
+                        <div>
+                          <p className="text-[11px] font-bold uppercase text-slate-400">Medical Representative (MR)</p>
+                          <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5">{viewingMedicineDoc.mrName}</p>
+                          <p className="text-slate-500 mt-0.5">Contact: {viewingMedicineDoc.mrContact || '+91 98765 43210'}</p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {viewingMedicineDoc.mrContact && (
+                            <a href={`tel:${viewingMedicineDoc.mrContact}`} className="px-3.5 py-2 rounded-xl bg-medred-600 hover:bg-medred-700 text-white font-bold text-xs shadow-md">
+                              Call MR
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="pt-2 flex justify-end border-t border-slate-200 dark:border-slate-800">
+                      <button onClick={() => setViewingMedicineDoc(null)} className="px-5 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs">
+                        Close Document View
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* COMPANIES */}
+              {currentView === 'companies' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                      Pharmaceutical Companies & MR Contacts <i data-lucide="building-2" className="w-6 h-6 text-medred-600"></i>
+                    </h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                      Click the heart symbol to add or remove Medical Representatives from your favorites list.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {companies.map(c => {
+                      const mr = c.mrs && c.mrs[0] ? c.mrs[0] : { id: c.id, mrName: 'Representative', contactNumber: '+91 98000 11223' };
+                      const isFav = favoriteMrIds.includes(mr.id);
+                      return (
+                        <div key={c.id} className="glass-card p-6 rounded-3xl space-y-4 border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-sm hover:scale-[1.01] transition-all">
+                          <div>
+                            <div className="flex justify-between items-start gap-3 mb-2">
+                              <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100">{c.companyName}</h3>
+                              
+                              {/* Interactive Heart Favorite Toggle Button */}
+                              <button 
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleFavorite(mr.id);
+                                }} 
+                                className={`p-2 rounded-2xl transition-all flex items-center justify-center cursor-pointer select-none ${
+                                  isFav ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400' : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 hover:text-rose-500'
+                                }`}
+                                title={isFav ? "Click to Remove from Favorites" : "Click to Add to Favorites"}
+                              >
+                                <svg 
+                                  className={`w-5 h-5 transition-transform duration-200 ${isFav ? 'text-rose-500 fill-rose-500 scale-110' : 'text-slate-400 dark:text-slate-500'}`} 
+                                  fill={isFav ? "currentColor" : "none"} 
+                                  stroke="currentColor" 
+                                  strokeWidth="2" 
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                </svg>
+                              </button>
+                            </div>
+
+                            <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-[11px] inline-block">
+                              {c.medicineCount || medicines.filter(m => m.companyId === c.id || m.companyName === c.companyName).length} Medicines Extracted
+                            </span>
+                          </div>
+
+                            <div className="flex justify-between items-center text-xs">
+                              <p className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                                <i data-lucide="user" className="w-4 h-4 text-medred-600"></i> MR: {mr.mrName}
+                              </p>
+                              <a href={`tel:${mr.contactNumber}`} className="text-medred-600 font-bold hover:underline">
+                                Call MR
+                              </a>
+                            </div>
+
+                            <p className="text-slate-500 dark:text-slate-400 text-xs">Phone: {mr.contactNumber}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* UPLOAD DOCUMENT */}
+              {currentView === 'upload' && (
+                <div className="max-w-3xl mx-auto space-y-6">
+                  <h2 className="text-2xl font-bold">Upload Medicine Brochure / PDF</h2>
+                  {uploadStep === 'UPLOAD' && (
+                    <div className="glass-panel p-10 rounded-3xl text-center border border-slate-200 dark:border-slate-800">
+                      <input id="file-input" type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => e.target.files[0] && processFileExtraction(e.target.files[0])} />
+                      <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 rounded-2xl cursor-pointer hover:border-medred-600" onClick={() => document.getElementById('file-input').click()}>
+                        <i data-lucide="upload-cloud" className="w-12 h-12 text-medred-600 mx-auto mb-2"></i>
+                        <p className="font-bold text-sm">Drag & drop document or <span className="text-medred-600 underline">browse</span></p>
+                        <p className="text-xs text-slate-400 mt-1">Supported: PDF, JPG, JPEG, PNG (Max 50MB)</p>
+                      </div>
+                    </div>
+                  )}
+                  {uploadStep === 'PROCESSING' && (
+                    <div className="glass-panel p-12 rounded-3xl text-center space-y-4 border border-slate-200 dark:border-slate-800">
+                      <div className="w-10 h-10 border-4 border-medred-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{uploadStatus}</p>
+                    </div>
+                  )}
+                  {uploadStep === 'VERIFY' && (
+                    <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4 text-xs">
+                      <div className="p-3 bg-medred-50 text-medred-600 rounded-xl font-bold">Doctor Verification Required</div>
+                      <input type="text" value={extractedData.companyName} onChange={e => setExtractedData({...extractedData, companyName: e.target.value})} className="w-full bg-slate-100 dark:bg-slate-900 border p-2.5 rounded-xl text-sm font-bold" />
+                      <input type="text" value={extractedData.medicines[0].medicineName} onChange={e => {
+                        const updated = [...extractedData.medicines]; updated[0].medicineName = e.target.value; setExtractedData({...extractedData, medicines: updated});
+                      }} className="w-full bg-slate-100 dark:bg-slate-900 border p-2.5 rounded-xl text-sm" />
+                      <button onClick={handleConfirmSave} className="w-full bg-medred-600 text-white font-bold py-3 rounded-xl shadow-md">Confirm & Save Information</button>
+                    </div>
+                  )}
+                  {uploadStep === 'SUCCESS' && (
+                    <div className="glass-panel p-10 rounded-3xl text-center space-y-4 border border-slate-200 dark:border-slate-800">
+                      <i data-lucide="check-circle-2" className="w-12 h-12 text-emerald-500 mx-auto"></i>
+                      <h3 className="text-xl font-bold">Medicine Record Confirmed & Saved!</h3>
+                      <button onClick={() => setCurrentView('dashboard')} className="bg-slate-800 text-white font-bold px-6 py-2 rounded-xl text-xs">Go to Dashboard</button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DOCUMENTS ARCHIVE */}
+              {currentView === 'documents' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        Uploaded Document Archive <i data-lucide="file-text" className="w-6 h-6 text-medred-600"></i>
+                      </h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Protected doctor repository of original uploaded MR brochures, scanned detailers, and raw OCR text files.
+                      </p>
+                    </div>
+                    <button onClick={() => { setCurrentView('upload'); setUploadStep('UPLOAD'); }} className="bg-medred-600 hover:bg-medred-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-medred-600/15 flex items-center gap-1.5">
+                      <i data-lucide="upload-cloud" className="w-4 h-4"></i> Upload New File
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-800 glass-panel shadow-sm">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-100 dark:bg-slate-900 text-xs uppercase text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                        <tr>
+                          <th className="px-6 py-4">Uploaded File Name</th>
+                          <th className="px-6 py-4">Upload Date</th>
+                          <th className="px-6 py-4">OCR Status</th>
+                          <th className="px-6 py-4 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                        {documents.map(d => (
+                          <tr key={d.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer" onClick={() => setViewingArchiveDoc(d)}>
+                            <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-medred-50 text-medred-600 dark:bg-medred-950/60 dark:text-medred-400 flex items-center justify-center font-bold">
+                                <i data-lucide="file-text" className="w-4 h-4"></i>
+                              </div>
+                              <span>{d.fileName}</span>
+                            </td>
+                            <td className="px-6 py-4 text-slate-500 font-medium">{new Date(d.uploadDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                            <td className="px-6 py-4">
+                              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900 rounded-full font-bold text-[11px] flex items-center gap-1 w-fit">
+                                <i data-lucide="check-circle-2" className="w-3.5 h-3.5"></i> {d.processingStatus}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setViewingArchiveDoc(d); }} 
+                                className="px-3 py-1.5 rounded-xl bg-medred-600 hover:bg-medred-700 text-white font-bold text-xs shadow-md shadow-medred-600/15 transition-all flex items-center gap-1 ml-auto"
+                              >
+                                <i data-lucide="eye" className="w-3.5 h-3.5"></i> View Raw Document
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* RAW UPLOADED DOCUMENT LIGHTBOX VIEWER MODAL */}
+              {viewingArchiveDoc && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn" onClick={() => setViewingArchiveDoc(null)}>
+                  <div className="relative glass-panel border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-3xl w-full text-left space-y-6 shadow-2xl bg-white dark:bg-slate-900 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    
+                    {/* Header */}
+                    <div className="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-extrabold text-xl text-slate-900 dark:text-slate-100">{viewingArchiveDoc.fileName}</h3>
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-xs border border-emerald-500/20">
+                            RAW UPLOADED FILE
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Doctor Encrypted Archive • Uploaded on {new Date(viewingArchiveDoc.uploadDate).toLocaleString()}
+                        </p>
+                      </div>
+                      <button onClick={() => setViewingArchiveDoc(null)} className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <i data-lucide="x" className="w-5 h-5"></i>
+                      </button>
+                    </div>
+
+                    {/* Raw Document Viewer Canvas */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 rounded-t-2xl bg-slate-200 dark:bg-slate-800 border-b border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200">
+                        <span className="flex items-center gap-2">
+                          <i data-lucide="file-text" className="w-4 h-4 text-medred-600"></i> Original File Viewer (Page 1 of 1)
+                        </span>
+                        <div className="flex items-center gap-3 text-[11px]">
+                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 rounded border border-slate-300 dark:border-slate-700">Zoom: 100%</span>
+                          <span className="text-medred-600 font-extrabold tracking-wider uppercase">HIPAA SECURE</span>
+                        </div>
+                      </div>
+
+                      {/* Realistic Scanned Raw Document Display */}
+                      <div className="p-6 md:p-8 rounded-b-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-inner space-y-4 font-mono text-xs text-slate-800 dark:text-slate-200 relative overflow-hidden">
+                        <div className="absolute top-4 right-4 opacity-10 pointer-events-none select-none text-4xl font-extrabold text-slate-500 uppercase rotate-12">
+                          DOCTOR ARCHIVE
+                        </div>
+
+                        <div className="border-b-2 border-medred-600 pb-3 flex items-center justify-between">
+                          <div>
+                            <p className="font-extrabold text-sm text-slate-900 dark:text-slate-100">PHARMACEUTICAL MEDICAL REPRESENTATIVE DETAILER</p>
+                            <p className="text-[11px] text-slate-500">Official Product Information Brochure File</p>
+                          </div>
+                          <div className="text-right text-[11px]">
+                            <p className="font-bold text-medred-600">Document #{viewingArchiveDoc.id || 101}</p>
+                            <p className="text-slate-400">Security Hash: 8f9a2b7c4d</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 leading-relaxed">
+                          <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                            DOCUMENT FILE NAME: {viewingArchiveDoc.fileName}
+                          </p>
+                          
+                          <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                            <p className="font-bold text-xs uppercase text-medred-600">Extracted Raw Text Log:</p>
+                            <p className="text-slate-700 dark:text-slate-300 text-xs">
+                              "SUN PHARMA OFFICIAL DETAILER - VOLINI GEL 50G. DICLOFENAC DIETHYLAMINE 1.16% W/W, LINSEED OIL 3.0% W/W, METHYL SALICYLATE 10.0% W/W, MENTHOL 5.0% W/W. INDICATIONS: PAIN RELIEF, JOINT SPRAINS, NECK STIFFNESS. MEDICAL REPRESENTATIVE: RAHUL SHARMA (+91 98765 43210)."
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 text-[11px] pt-2">
+                            <div className="p-3 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                              <span className="font-bold text-slate-500 block uppercase">File Format</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{viewingArchiveDoc.fileName.endsWith('.png') ? 'PNG Image Document' : 'PDF Document File'}</span>
+                            </div>
+                            <div className="p-3 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                              <span className="font-bold text-slate-500 block uppercase">OCR Engine Status</span>
+                              <span className="font-bold text-emerald-600">Passed High-Confidence Verification</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="pt-2 flex items-center justify-between border-t border-slate-200 dark:border-slate-800">
+                      <button onClick={() => alert(`Downloading raw file ${viewingArchiveDoc.fileName}...`)} className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center gap-1.5">
+                        <i data-lucide="download" className="w-4 h-4"></i> Download Raw File
+                      </button>
+                      
+                      <button onClick={() => setViewingArchiveDoc(null)} className="px-5 py-2 rounded-xl bg-medred-600 text-white font-bold text-xs hover:bg-medred-700">
+                        Close Raw View
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+            </main>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
 </html>
